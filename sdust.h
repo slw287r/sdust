@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <ctype.h>
+#include <unistd.h>
 #include <zlib.h>
 
 #include "ketopt.h"
