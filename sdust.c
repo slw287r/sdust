@@ -1,49 +1,4 @@
-#include <string.h>
-#include <stdint.h>
-#include <stdio.h>
-#include "kdq.h"
-#include "kvec.h"
 #include "sdust.h"
-
-#define SD_WLEN 3
-#define SD_WTOT (1<<(SD_WLEN<<1))
-#define SD_WMSK (SD_WTOT - 1)
-
-typedef struct {
-	int start, finish;
-	int r, l;
-} perf_intv_t;
-
-typedef kvec_t(perf_intv_t) perf_intv_v;
-typedef kvec_t(uint64_t) uint64_v;
-
-KDQ_INIT(int)
-
-unsigned char seq_nt4_table[256] = {
-	0, 1, 2, 3,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 0, 4, 1,  4, 4, 4, 2,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 4, 4, 4,  3, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 0, 4, 1,  4, 4, 4, 2,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 4, 4, 4,  3, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4
-};
-
-struct sdust_buf_s {
-	kdq_t(int) *w;
-	perf_intv_v P; // the list of perfect intervals for the current window, sorted by descending start and then by ascending finish
-	uint64_v res;  // the result
-	void *km;      // memory pool
-};
 
 sdust_buf_t *sdust_buf_init(void *km)
 {
@@ -169,35 +124,61 @@ uint64_t *sdust(void *km, const uint8_t *seq, int l_seq, int T, int W, int *n)
 	return ret;
 }
 
-#include <zlib.h>
-#include <stdio.h>
-#include "ketopt.h"
-#include "kseq.h"
-KSEQ_INIT(gzFile, gzread)
+void usage(const char *a, const int W, const int T)
+{
+	fprintf(stderr, "\nUsage: \033[1;31m%s\033[0;0m \033[2m[options]\033[0m <in.fa>\n\n", a);
+	fprintf(stderr, "  -w [INT] Dust window length [%d]\n", W);
+	fprintf(stderr, "  -t [INT] Dust level (score threshold for subwindows) [%d]\n", T);
+	fprintf(stderr, "  -d       Uncapitalize dusted sequences (default output dust intervals\n\n");
+	fprintf(stderr, "  -h       Display this help\n");
+	fprintf(stderr, "  -v       Show program version\n\n");
+	exit(1);
+}
 
 int main(int argc, char *argv[])
 {
 	gzFile fp;
 	kseq_t *ks;
-	int W = 64, T = 20, c;
+	int W = 64, T = 20, c, d = 0;
 	ketopt_t o = KETOPT_INIT;
 
-	while ((c = ketopt(&o, argc, argv, 1, "w:t:", 0)) >= 0) {
-		if (c == 'w') W = atoi(o.arg);
+	while ((c = ketopt(&o, argc, argv, 1, "w:t:dvh", 0)) >= 0) {
+		if (c == 'h') usage(basename(argv[0]), W, T);
+		else if (c == 'v') {puts(SDUST_VERSION); return 0;}
+		else if (c == 'd') d = 1;
+		else if (c == 'w') W = atoi(o.arg);
 		else if (c == 't') T = atoi(o.arg);
 	}
-	if (o.ind == argc) {
-		fprintf(stderr, "Usage: sdust [-w %d] [-t %d] <in.fa>\n", W, T);
-		return 1;
-	}
+	if (o.ind == argc) usage(basename(argv[0]), W, T);
 	fp = strcmp(argv[o.ind], "-")? gzopen(argv[o.ind], "r") : gzdopen(fileno(stdin), "r");
 	ks = kseq_init(fp);
 	while (kseq_read(ks) >= 0) {
 		uint64_t *r;
-		int i, n;
+		int i, j, n = 0;
 		r = sdust(0, (uint8_t*)ks->seq.s, -1, T, W, &n);
-		for (i = 0; i < n; ++i)
-			printf("%s\t%d\t%d\n", ks->name.s, (int)(r[i]>>32), (int)r[i]);
+		if (d)
+		{
+			putchar('>');
+			puts(ks->name.s);
+			if (ks->comment.l)
+			{
+				putchar(' ');
+				puts(ks->comment.s);
+			}
+			if (n)
+			{
+				char *s = ks->seq.s;
+				for (i = 0; i < n; ++i)
+				{
+					int a = (int)(r[i]>>32) - 1, b = (int)r[i] - 1;
+					for (j = a; j <= b; ++j) s[j] = tolower(s[j]);
+				}
+			}
+			puts(ks->seq.s);
+		}
+		else
+			for (i = 0; i < n; ++i)
+				printf("%s\t%d\t%d\n", ks->name.s, (int)(r[i]>>32), (int)r[i]);
 		free(r);
 	}
 	kseq_destroy(ks);
