@@ -151,8 +151,15 @@ int main(int argc, char *argv[])
 		else if (c == 'w') W = atoi(o.arg);
 		else if (c == 't') T = atoi(o.arg);
 	}
-	if (o.ind == argc) usage(basename(argv[0]), W, T);
-	fp = strcmp(argv[o.ind], "-")? gzopen(argv[o.ind], "r") : gzdopen(fileno(stdin), "r");
+	if (o.ind == argc)
+	{
+		if (!isatty(fileno(stdin)))
+			fp = gzdopen(fileno(stdin), "r");
+		else
+			usage(basename(argv[0]), W, T);
+	}
+	else
+		fp = strcmp(argv[o.ind], "-")? gzopen(argv[o.ind], "r") : gzdopen(fileno(stdin), "r");
 	// check masker
 	if (m && !strchr("XNxn", (char)m))
 	{
