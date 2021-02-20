@@ -1,11 +1,11 @@
 #ifndef SDUST_H
 #define SDUST_H
 
+#define _POSIX_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <ctype.h>
-#include <unistd.h>
 #include <zlib.h>
 
 #include "ketopt.h"

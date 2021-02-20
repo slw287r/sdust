@@ -129,7 +129,8 @@ void usage(const char *a, const int W, const int T)
 	fprintf(stderr, "\nUsage: \033[1;31m%s\033[0;0m \033[2m[options]\033[0m <in.fa>\n\n", a);
 	fprintf(stderr, "  -w [INT] Dust window length [%d]\n", W);
 	fprintf(stderr, "  -t [INT] Dust level (score threshold for subwindows) [%d]\n", T);
-	fprintf(stderr, "  -d       Uncapitalize dusted sequences (default output dust intervals\n\n");
+	fprintf(stderr, "  -d       Uncapitalize dusted sequences (default output dust intervals)\n");
+	fprintf(stderr, "  -m       Mask dusted sequences with N (works w/ -d; default no mask)\n\n");
 	fprintf(stderr, "  -h       Display this help\n");
 	fprintf(stderr, "  -v       Show program version\n\n");
 	exit(1);
@@ -139,13 +140,14 @@ int main(int argc, char *argv[])
 {
 	gzFile fp;
 	kseq_t *ks;
-	int W = 64, T = 20, c, d = 0;
+	int W = 64, T = 20, c, d = 0, m = 0;
 	ketopt_t o = KETOPT_INIT;
 
-	while ((c = ketopt(&o, argc, argv, 1, "w:t:dvh", 0)) >= 0) {
+	while ((c = ketopt(&o, argc, argv, 1, "w:t:dmvh", 0)) >= 0) {
 		if (c == 'h') usage(basename(argv[0]), W, T);
 		else if (c == 'v') {puts(SDUST_VERSION); return 0;}
 		else if (c == 'd') d = 1;
+		else if (c == 'm') m = 1;
 		else if (c == 'w') W = atoi(o.arg);
 		else if (c == 't') T = atoi(o.arg);
 	}
@@ -171,7 +173,7 @@ int main(int argc, char *argv[])
 				for (i = 0; i < n; ++i)
 				{
 					int a = (int)(r[i]>>32) - 1, b = (int)r[i] - 1;
-					for (j = a; j <= b; ++j) s[j] = tolower(s[j]);
+					for (j = a; j <= b; ++j) s[j] = m ? 'N' : tolower(s[j]);
 				}
 			}
 			puts(ks->seq.s);
