@@ -11,6 +11,7 @@
 #include "kvec.h"
 
 #define SDUST_VERSION "0.1-r3"
+#define min(x,y) ((x)>(y)?(y):(x))
 #define basename(str) (strrchr(str, '/') ? strrchr(str, '/') + 1 : str)
 
 #ifdef __cplusplus

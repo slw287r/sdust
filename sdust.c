@@ -129,8 +129,9 @@ void usage(const char *a, const int W, const int T)
 	fprintf(stderr, "\nUsage: \033[1;31m%s\033[0;0m \033[2m[options]\033[0m <in.fa>\n\n", a);
 	fprintf(stderr, "  -w [INT]  Dust window length [%d]\n", W);
 	fprintf(stderr, "  -t [INT]  Dust level (score threshold for subwindows) [%d]\n", T);
-	fprintf(stderr, "  -m [CHAR] Mask dusted sequences with character X or N (works w/ -d; default no mask)\n\n");
-	fprintf(stderr, "  -d        Uncapitalize dusted sequences (default output dust intervals)\n");
+	fprintf(stderr, "  -m [CHAR] Mask dusted sequences with character X or N\n");
+	fprintf(stderr, "            (works with -d; default no mask)\n\n");
+	fprintf(stderr, "  -d        Output sequences instead of dusted intervals)\n\n");
 	fprintf(stderr, "  -h        Display this help\n");
 	fprintf(stderr, "  -v        Show program version\n\n");
 	exit(1);
@@ -193,7 +194,7 @@ int main(int argc, char *argv[])
 		}
 		else
 			for (i = 0; i < n; ++i)
-				printf("%s\t%d\t%d\n", ks->name.s, (int)(r[i]>>32), (int)r[i]);
+				printf("%s\t%d\t%d\n", ks->name.s, (int)(r[i]>>32), min(ks->seq.l, (int)r[i]));
 		free(r);
 	}
 	kseq_destroy(ks);
