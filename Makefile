@@ -1,10 +1,13 @@
-CC=			gcc
-CFLAGS=		-g -Wall -Wc++-compat -std=c99 -O2
-CPPFLAGS=
-INCLUDES=
-OBJS=
-PROG=		sdust
-LIBS=		-lz
+ARCH := $(shell arch)
+ifeq ($(ARCH),x86_64)
+CFLAGS=-g -Wall -Wc++-compat -std=c99 -O3 -march=native -Wno-unused-function
+else
+CFLAGS=-g -Wall -Wc++-compat -std=c99 -O3 -Wno-unused-function
+endif
+
+CC=gcc
+PROG=sdust
+LIBS=-lz
 
 ifneq ($(asan),)
 	CFLAGS+=-fsanitize=address
@@ -15,18 +18,18 @@ endif
 .PHONY:all clean depend
 
 .c.o:
-		$(CC) -c $(CFLAGS) $(CPPFLAGS) $(INCLUDES) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
 all:$(PROG)
 
 sdust:sdust.o
-		$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
+	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
 clean:
-		rm -fr gmon.out *.o a.out $(PROG) *~ *.a *.dSYM
+	rm -fr gmon.out *.o a.out $(PROG) *~ *.a *.dSYM
 
 depend:
-		(LC_ALL=C; export LC_ALL; makedepend -Y -- $(CFLAGS) $(DFLAGS) -- *.c)
+	(LC_ALL=C; export LC_ALL; makedepend -Y -- $(CFLAGS) -- *.c)
 
 # DO NOT DELETE
 
