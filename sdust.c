@@ -130,6 +130,7 @@ void usage(const char *a, const int W, const int T)
 	fprintf(stderr, "  -w [INT]  Dust window length [%d]\n", W);
 	fprintf(stderr, "  -t [INT]  Dust level (score threshold for subwindows) [%d]\n", T);
 	fprintf(stderr, "  -m [CHAR] Mask dusted sequences (-d) with character X or N [X]\n");
+	fprintf(stderr, "  -c [INT]  Column wrapping number (no wrapping)\n");
 	fprintf(stderr, "  -d        Output sequences instead of dust bed intervals)\n\n");
 	fprintf(stderr, "  -h        Display this help\n");
 	fprintf(stderr, "  -v        Show program version\n\n");
@@ -140,16 +141,17 @@ int main(int argc, char *argv[])
 {
 	gzFile fp;
 	kseq_t *ks;
-	int W = 64, T = 20, c, d = 0, m = 0;
+	int W = 64, T = 20, c, d = 0, m = 0, wrap = 0;
 	ketopt_t o = KETOPT_INIT;
 
-	while ((c = ketopt(&o, argc, argv, 1, "w:t:m:dvh", 0)) >= 0) {
+	while ((c = ketopt(&o, argc, argv, 1, "w:t:m:c:dvh", 0)) >= 0) {
 		if (c == 'h') usage(basename(argv[0]), W, T);
 		else if (c == 'v') {puts(SDUST_VERSION); return 0;}
 		else if (c == 'd') d = 1;
 		else if (c == 'm') m = *o.arg;
 		else if (c == 'w') W = atoi(o.arg);
 		else if (c == 't') T = atoi(o.arg);
+		else if (c == 'c') wrap = atoi(o.arg);
 	}
 	if (o.ind == argc)
 	{
@@ -160,6 +162,11 @@ int main(int argc, char *argv[])
 	}
 	else
 		fp = strcmp(argv[o.ind], "-")? gzopen(argv[o.ind], "r") : gzdopen(fileno(stdin), "r");
+	if (wrap <= 0)
+	{
+		fprintf(stderr, "Error: invalid column wrapping number [%d]\n", wrap);
+		exit(1);
+	}
 	// check masker
 	if (m && !strchr("XNxn", (char)m))
 	{
@@ -189,7 +196,17 @@ int main(int argc, char *argv[])
 					for (j = a; j <= b; ++j) s[j] = m ? (char)m : tolower(s[j]);
 				}
 			}
-			puts(ks->seq.s);
+			if (wrap)
+			{
+				for (i = 0; i < ks->seq.l; ++i)
+				{
+					putchar(ks->seq.s[i]);
+					if ((i + 1) % wrap == 0) putchar('\n');
+				}
+				if (ks->seq.l % wrap) putchar('\n');
+			}
+			else
+				puts(ks->seq.s);
 		}
 		else
 			for (i = 0; i < n; ++i)
