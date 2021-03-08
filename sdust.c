@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
 		if (d)
 		{
 			putchar('>');
-			puts(ks->name.s);
+			fputs(ks->name.s, stdout);
 			if (ks->comment.l)
 			{
 				putchar(' ');
