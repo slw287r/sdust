@@ -162,11 +162,6 @@ int main(int argc, char *argv[])
 	}
 	else
 		fp = strcmp(argv[o.ind], "-")? gzopen(argv[o.ind], "r") : gzdopen(fileno(stdin), "r");
-	if (wrap <= 0)
-	{
-		fprintf(stderr, "Error: invalid column wrapping number [%d]\n", wrap);
-		exit(1);
-	}
 	// check masker
 	if (m && !strchr("XNxn", (char)m))
 	{
