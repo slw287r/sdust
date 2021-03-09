@@ -182,6 +182,7 @@ int main(int argc, char *argv[])
 				putchar(' ');
 				puts(ks->comment.s);
 			}
+			putchar('\n');
 			if (n)
 			{
 				char *s = ks->seq.s;
