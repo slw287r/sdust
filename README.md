@@ -16,6 +16,7 @@ Parameter | Type | Description | Default
   `-w` | INT  | Dust window length | 64
   `-t` | INT  | Dust level (score threshold for subwindows) | 20
   `-m` | CHAR | Mask dusted sequences (works with -d) with character X or N | X
-  `-d` |      | Output sequences instead of dust bed intervals) | &nbsp;
+  `-d` |      | Output sequences instead of dust bed intervals | &nbsp;
+  `-c` |      | Wrapping sequence at specified column (default no wrappings) | &nbsp;
   `-h` |      | Display this help | &nbsp;
   `-v` |      |  Show program version | &nbsp;
