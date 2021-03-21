@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
 			if (ks->comment.l)
 			{
 				putchar(' ');
-				puts(ks->comment.s);
+				fputs(ks->comment.s, stdout);
 			}
 			putchar('\n');
 			if (n)
