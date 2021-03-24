@@ -169,7 +169,8 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	ks = kseq_init(fp);
-	while (kseq_read(ks) >= 0) {
+	while (kseq_read(ks) >= 0)
+	{
 		uint64_t *r;
 		int i, j, n = 0;
 		r = sdust(0, (uint8_t*)ks->seq.s, -1, T, W, &n);
@@ -188,7 +189,7 @@ int main(int argc, char *argv[])
 				char *s = ks->seq.s;
 				for (i = 0; i < n; ++i)
 				{
-					int a = (int)(r[i]>>32), b = (int)r[i] - 1;
+					int a = (int)(r[i]>>32), b = min((int)r[i], ks->seq.l) - 1;
 					for (j = a; j <= b; ++j) s[j] = m ? (char)m : tolower(s[j]);
 				}
 			}

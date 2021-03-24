@@ -10,7 +10,7 @@
 #include "kdq.h"
 #include "kvec.h"
 
-#define SDUST_VERSION "0.1-r3"
+#define SDUST_VERSION "0.1-r4"
 #define min(x,y) ((x)>(y)?(y):(x))
 #define basename(str) (strrchr(str, '/') ? strrchr(str, '/') + 1 : str)
 
