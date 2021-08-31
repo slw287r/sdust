@@ -130,7 +130,7 @@ void usage(const int W, const int T, const int L)
 	fprintf(stderr, "  -w [INT]  Dust window length \033[2m[%d]\033[0m\n", W);
 	fprintf(stderr, "  -t [INT]  Dust level (score threshold for subwindows) \033[2m[%d]\033[0m\n", T);
 	fprintf(stderr, "  -l [INT]  Minimum dusting length \033[2m[%d]\033[0m\n", L);
-	fprintf(stderr, "  -m [CHAR] Mask dusted sequences (-d) with X or N \033[2m[X]\033[0m\n");
+	fprintf(stderr, "  -m [CHAR] Mask dusted sequences (-d) w/ X or N \033[2m[uncapitalized]\033[0m\n");
 	fprintf(stderr, "  -c [INT]  Column wrapping number \033[2m[none]\033[0m\n");
 	fprintf(stderr, "  -d        Output sequences instead of dust bed intervals)\n\n");
 	fprintf(stderr, "  -h        Display this help\n");
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 {
 	gzFile fp;
 	kseq_t *ks;
-	int W = 64, T = 20, L = 1, c, d = 0, m = 0, wrap = 0;
+	int W = 64, T = 20, L = 7, c, d = 0, m = 0, wrap = 0;
 	ketopt_t o = KETOPT_INIT;
 
 	while ((c = ketopt(&o, argc, argv, 1, "w:t:l:m:c:dvh", 0)) >= 0)
