@@ -41,7 +41,7 @@ static inline void shift_window(int t, kdq_t(int) *w, int T, int W, int *L, int 
 
 static inline void save_masked_regions(void *km, uint64_v *res, perf_intv_v *P, int start)
 {
-	int i, saved = 0;
+	int i = 0, saved = 0;
 	perf_intv_t *p;
 	if (P->n == 0 || P->a[P->n - 1].start >= start) return;
 	p = &P->a[P->n - 1];
@@ -105,7 +105,8 @@ const uint64_t *sdust_core(const uint8_t *seq, int l_seq, int T, int W, int *n, 
 			}
 		} else { // N or the end of sequence; N effectively breaks input into pieces of independent sequences
 			start = (l - W + 1 > 0? l - W + 1 : 0) + (i + 1 - l);
-			while (buf->P.n) save_masked_regions(buf->km, &buf->res, &buf->P, start++); // clear up unsaved perfect intervals
+			while (buf->P.n)
+				save_masked_regions(buf->km, &buf->res, &buf->P, start++); // clear up unsaved perfect intervals
 			l = t = 0;
 		}
 	}
@@ -130,9 +131,9 @@ void usage(const int W, const int T, const int L)
 	fprintf(stderr, "  -w [INT]  Dust window length \033[2m[%d]\033[0m\n", W);
 	fprintf(stderr, "  -t [INT]  Dust level (score threshold for subwindows) \033[2m[%d]\033[0m\n", T);
 	fprintf(stderr, "  -l [INT]  Minimum dusting length \033[2m[%d]\033[0m\n", L);
-	fprintf(stderr, "  -m [CHAR] Mask dusted sequences (-d) w/ X or N \033[2m[uncapitalized]\033[0m\n");
-	fprintf(stderr, "  -c [INT]  Column wrapping number \033[2m[none]\033[0m\n");
-	fprintf(stderr, "  -d        Output sequences instead of dust bed intervals)\n\n");
+	fprintf(stderr, "  -m [CHAR] Mask dusted sequences (-d) w/ X or N \033[2m[soft-mask]\033[0m\n");
+	fprintf(stderr, "  -c [INT]  Sequence wrapping at column \033[2m[none]\033[0m\n");
+	fprintf(stderr, "  -d        Output sequences instead of dust intervals)\n\n");
 	fprintf(stderr, "  -h        Display this help\n");
 	fprintf(stderr, "  -v        Show program version\n\n");
 	exit(1);
