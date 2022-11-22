@@ -3,15 +3,18 @@
 
 #define _POSIX_SOURCE
 #include <stdio.h>
+#include <limits.h>
 #include <zlib.h>
 
 #include "ketopt.h"
 #include "kseq.h"
 #include "kdq.h"
 #include "kvec.h"
+#include "horiz.h"
 
-#define SDUST_VERSION "0.1-r6"
+#define SDUST_VERSION "0.1-r7"
 #define min(x,y) ((x)>(y)?(y):(x))
+#define PP fprintf(stderr, "%s\t%d\t<%s>\n", __FILE__, __LINE__, __func__);
 
 extern const char *__progname;
 

@@ -22,11 +22,11 @@ endif
 
 all:$(PROG)
 
-sdust:sdust.o
+sdust:sdust.o horiz.o
 	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
 clean:
-	rm -fr gmon.out *.o a.out $(PROG) *~ *.a *.dSYM
+	rm -fr *.o a.out $(PROG) *~ *.a *.dSYM
 
 depend:
 	(LC_ALL=C; export LC_ALL; makedepend -Y -- $(CFLAGS) -- *.c)

@@ -127,15 +127,20 @@ uint64_t *sdust(void *km, const uint8_t *seq, int l_seq, int T, int W, int *n)
 
 void usage(const int W, const int T, const int L)
 {
-	fprintf(stderr, "\nUsage: \033[1;31m%s\033[0;0m \033[2m[options]\033[0m <in.fa>\n\n", __progname);
-	fprintf(stderr, "  -w [INT]  Dust window length \033[2m[%d]\033[0m\n", W);
-	fprintf(stderr, "  -t [INT]  Dust level (score threshold for subwindows) \033[2m[%d]\033[0m\n", T);
-	fprintf(stderr, "  -l [INT]  Minimum dusting length \033[2m[%d]\033[0m\n", L);
-	fprintf(stderr, "  -m [CHAR] Mask dusted sequences (-d) w/ X or N \033[2m[soft-mask]\033[0m\n");
-	fprintf(stderr, "  -c [INT]  Sequence wrapping at column \033[2m[none]\033[0m\n");
-	fprintf(stderr, "  -d        Output sequences instead of dust intervals)\n\n");
+	horiz(60);
+	fprintf(stderr, "Usage: \033[1;31m%s\033[0;0m \033[1;2m[options]\033[0;0m <in.fa>\n", __progname);
+	horiz(60);
+	fprintf(stderr, "  -w [INT]  Dust window length \033[1;2m[%d]\033[0;0m\n", W);
+	fprintf(stderr, "  -t [INT]  Dust level (score threshold for subwindows) \033[1;2m[%d]\033[0;0m\n", T);
+	fprintf(stderr, "  -l [INT]  Minimum dusting length \033[1;2m[%d]\033[0;0m\n", L);
+	fprintf(stderr, "  -m [CHAR] Mask dusted sequences (-d) w/ X or N \033[1;2m[soft-mask]\033[0;0m\n");
+	fprintf(stderr, "  -c [INT]  Sequence wrapping at column \033[1;2m[none]\033[0;0m\n");
+	fprintf(stderr, "  -d        Output sequences instead of dust intervals\n");
+	fprintf(stderr, "  -n [INT]  Maximum mask length to output \033[1;2m[all]\033[0;0m\n");
+	fprintf(stderr, "            Only works when -d is given\n\n");
 	fprintf(stderr, "  -h        Display this help\n");
-	fprintf(stderr, "  -v        Show program version\n\n");
+	fprintf(stderr, "  -v        Show program version\n");
+	horiz(60);
 	exit(1);
 }
 
@@ -143,10 +148,11 @@ int main(int argc, char *argv[])
 {
 	gzFile fp;
 	kseq_t *ks;
-	int W = 64, T = 20, L = 7, c, d = 0, m = 0, wrap = 0;
+	int W = 64, T = 20, L = 7, N = INT_MAX, c, d = 0, m = 0, wrap = 0;
 	ketopt_t o = KETOPT_INIT;
-
-	while ((c = ketopt(&o, argc, argv, 1, "w:t:l:m:c:dvh", 0)) >= 0)
+	if (argc == 1 && isatty(fileno(stdin)))
+		usage(W, T, L);
+	while ((c = ketopt(&o, argc, argv, 1, "w:t:l:m:n:c:dvh", 0)) >= 0)
 	{
 		if (c == 'h') usage(W, T, L);
 		else if (c == 'v') {puts(SDUST_VERSION); return 0;}
@@ -155,6 +161,7 @@ int main(int argc, char *argv[])
 		else if (c == 'w') W = atoi(o.arg);
 		else if (c == 't') T = atoi(o.arg);
 		else if (c == 'l') L = atoi(o.arg);
+		else if (c == 'n') N = atoi(o.arg);
 		else if (c == 'c') wrap = atoi(o.arg);
 	}
 	if (o.ind == argc)
@@ -176,40 +183,48 @@ int main(int argc, char *argv[])
 	while (kseq_read(ks) >= 0)
 	{
 		uint64_t *r;
-		int i, j, n = 0;
+		int i, j, l = 0, n = 0;
 		r = sdust(0, (uint8_t*)ks->seq.s, -1, T, W, &n);
+		for (i = 0; i < n; ++i)
+		{
+			int a = (int)(r[i]>>32), b = min((int)r[i], ks->seq.l);
+			l += b - a;
+		}
 		if (d)
 		{
-			putchar('>');
-			fputs(ks->name.s, stdout);
-			if (ks->comment.l)
+			if (l <= N)
 			{
-				putchar(' ');
-				fputs(ks->comment.s, stdout);
-			}
-			putchar('\n');
-			if (n)
-			{
-				char *s = ks->seq.s;
-				for (i = 0; i < n; ++i)
+				putchar('>');
+				fputs(ks->name.s, stdout);
+				if (ks->comment.l)
 				{
-					int a = (int)(r[i]>>32), b = min((int)r[i], ks->seq.l) - 1;
-					if (b - a + 1 >= L)
-						for (j = a; j <= b; ++j)
-							s[j] = m ? (char)m : tolower(s[j]);
+					putchar(' ');
+					fputs(ks->comment.s, stdout);
 				}
-			}
-			if (wrap)
-			{
-				for (i = 0; i < ks->seq.l; ++i)
+				putchar('\n');
+				if (n)
 				{
-					putchar(ks->seq.s[i]);
-					if ((i + 1) % wrap == 0) putchar('\n');
+					char *s = ks->seq.s;
+					for (i = 0; i < n; ++i)
+					{
+						int a = (int)(r[i]>>32), b = min((int)r[i], ks->seq.l) - 1;
+						if (b - a + 1 >= L)
+							for (j = a; j <= b; ++j)
+								s[j] = m ? (char)m : tolower(s[j]);
+					}
 				}
-				if (ks->seq.l % wrap) putchar('\n');
+				if (wrap)
+				{
+					for (i = 0; i < ks->seq.l; ++i)
+					{
+						putchar(ks->seq.s[i]);
+						if ((i + 1) % wrap == 0) putchar('\n');
+					}
+					if (ks->seq.l % wrap) putchar('\n');
+				}
+				else
+					puts(ks->seq.s);
 			}
-			else
-				puts(ks->seq.s);
 		}
 		else
 			for (i = 0; i < n; ++i)
