@@ -19,5 +19,6 @@ Parameter | Type | Description | Default
   `-m` | CHAR | Mask dusted sequences (works with -d) with character X or N | uncapitalized
   `-d` |      | Output sequences instead of dust bed intervals | bed interval
   `-c` |      | Wrapping sequence at specified column | no wrapping
+  `-n` | INT| Maximum mask length to output (works with -d) | no limit |
   `-h` |      | Display this help | &nbsp;
   `-v` |      |  Show program version | &nbsp;
