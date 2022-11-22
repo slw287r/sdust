@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 		{
 			if (l <= N)
 			{
-				putchar('>');
+				putchar(ks->is_fastq ? '@' : '>');
 				fputs(ks->name.s, stdout);
 				if (ks->comment.l)
 				{
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
 								s[j] = m ? (char)m : tolower(s[j]);
 					}
 				}
-				if (wrap)
+				if (wrap && !ks->is_fastq)
 				{
 					for (i = 0; i < ks->seq.l; ++i)
 					{
@@ -223,7 +223,15 @@ int main(int argc, char *argv[])
 					if (ks->seq.l % wrap) putchar('\n');
 				}
 				else
+				{
 					puts(ks->seq.s);
+					if (ks->is_fastq)
+					{
+						putchar('+');
+						putchar('\n');
+						puts(ks->qual.s);
+					}
+				}
 			}
 		}
 		else
