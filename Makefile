@@ -1,6 +1,6 @@
 ARCH := $(shell arch)
 ifeq ($(ARCH),x86_64)
-CFLAGS=-g -Wall -Wc++-compat -std=c99 -O3 -Wno-unused-function
+CFLAGS=-g -Wall -Wc++-compat -static -std=c99 -O3 -Wno-unused-function
 else
 CFLAGS=-g -Wall -Wc++-compat -std=c99 -O3 -Wno-unused-function
 endif
